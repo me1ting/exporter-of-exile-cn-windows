@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 
+//Copyed from shadowsocks-windows
 namespace ExporterOfExileCN.Util.ProcessManagement
 {
     /*

@@ -27,7 +27,7 @@
             </StatusBar.ItemsPanel>
             <StatusBarItem>
                 <Grid>
-                    <Image Name="statusIcon" Height="14" Width="14" Source="Resources/error.png" HorizontalAlignment="Left"/>
+                    <Image Name="statusIcon" Height="14" Width="14" HorizontalAlignment="Left"/>
                     <TextBlock Name="statusText" Margin="20,0,0,0" Text="" HorizontalAlignment="Left" />
                 </Grid>
             </StatusBarItem>
@@ -41,7 +41,7 @@
             <Button Content="..." HorizontalAlignment="Left" Margin="195,45,0,0" VerticalAlignment="Top" Width="29" Click="PatchSelectorClick"/>
             <Button Name="portUpdateButton"  Content="更新" HorizontalAlignment="Left" Margin="129,20,0,0" VerticalAlignment="Top" Width="55" Click="UpdatePortButtonClick" IsEnabled="False"/>
             <Button Name="patchButton" Content="打补丁" HorizontalAlignment="Left" Margin="229,45,0,0" VerticalAlignment="Top" Width="55"  Click="PatchButtonClick" IsEnabled="False"/>
-            <Button Content="重启" HorizontalAlignment="Left" Margin="229,90,0,0" VerticalAlignment="Top" Width="55" Click="RestartClick"/>
+            <Button Name="restartButton" Content="重启" HorizontalAlignment="Left" Margin="229,90,0,0" VerticalAlignment="Top" Width="55" Click="RestartClick"/>
             <TextBlock Name="helpMessageShow" HorizontalAlignment="Left" Margin="70,70,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="214" RenderTransformOrigin="0.817,0.394" FontStyle="Italic" TextDecorations="{x:Null}"/>
         </Grid>
     </DockPanel>

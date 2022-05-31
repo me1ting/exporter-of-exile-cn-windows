@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using ExporterOfExileCN.Util.ProcessManagement;
 
+//Copyed from shadowsocks-windows
 namespace ExporterOfExileCN.Core
 {
     class BackendRunner
@@ -19,7 +20,7 @@ namespace ExporterOfExileCN.Core
 
         public void Start(Config config)
         {
-            if (_process == null)
+            if (_process == null || _process.HasExited)
             {
                 Process[] existingBackends = Process.GetProcessesByName("exporter-of-exile-cn-backend");
                 foreach (Process p in existingBackends.Where(IsChildProcess))
@@ -51,7 +52,7 @@ namespace ExporterOfExileCN.Core
 
         public void Stop()
         {
-            if (_process != null)
+            if (_process != null&&!_process.HasExited)
             {
                 KillProcess(_process);
                 _process.Dispose();
@@ -73,7 +74,6 @@ namespace ExporterOfExileCN.Core
             }
             catch (Exception e)
             {
-                //may need log
                 MessageBox.Show(e.ToString());
             }
         }
@@ -107,10 +107,19 @@ namespace ExporterOfExileCN.Core
                  * are already dead, and that will cause exceptions here.
                  * We could simply ignore those exceptions.
                  */
-                //may need log
                 MessageBox.Show(e.ToString());
                 return false;
             }
+        }
+
+        public bool Stoped()
+        {
+            if (_process == null || _process.HasExited)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

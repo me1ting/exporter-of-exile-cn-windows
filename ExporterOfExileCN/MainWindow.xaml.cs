@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,6 +13,12 @@ using System.Windows.Media.Imaging;
 
 namespace ExporterOfExileCN
 {
+    enum BackendStatus
+    {
+        Stoped,
+        Running,
+        Changing,
+    }
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
@@ -18,8 +26,9 @@ namespace ExporterOfExileCN
     {
         private Config config;
         private BackendRunner backendRunner;
-        private BitmapImage successIcon;
-        private BitmapImage errorIcon;
+        private readonly BitmapImage successIcon;
+        private readonly BitmapImage errorIcon;
+        private readonly BitmapImage changeIcon;
 
         public MainWindow()
         {
@@ -29,6 +38,7 @@ namespace ExporterOfExileCN
 
             successIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/success.png"));
             errorIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/error.png"));
+            changeIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/change.png"));
 
             portInput.Text = config.ListenPort.ToString();
             StartBackend();
@@ -40,7 +50,6 @@ namespace ExporterOfExileCN
             p.StartInfo.FileName = "explorer.exe";
             string execPath = AppDomain.CurrentDomain.BaseDirectory;
             p.StartInfo.Arguments = @" /select, " + execPath + "log.txt";
-            p.StartInfo.Arguments = @" /select, " + execPath + "log.txt";
             p.Start();
         }
 
@@ -49,10 +58,11 @@ namespace ExporterOfExileCN
             var newPort = int.Parse(portInput.Text);
             config.ListenPort = newPort;
             Config.Save(config);
-            StartBackend();
-
-            MessageBox.Show("更新成功");
+            MessageBox.Show("成功");
             portUpdateButton.IsEnabled = false;
+
+            StopBackend();
+            StartBackend();
         }
 
         private void PatchSelectorClick(object sender, RoutedEventArgs e)
@@ -95,14 +105,14 @@ namespace ExporterOfExileCN
             Config.Save(config);
 
             patchButton.IsEnabled = false;
-            MessageBox.Show("打补丁成功");
+            MessageBox.Show("成功");
         }
 
         private void RestartClick(object sender, RoutedEventArgs e)
         {
+            restartButton.IsEnabled = false;
             StopBackend();
             StartBackend();
-            MessageBox.Show("重启中");
         }
 
         private void NumberValidationOnPreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -165,29 +175,53 @@ namespace ExporterOfExileCN
 
         private void StartBackend()
         {
+            portUpdateButton.IsEnabled = false;
+            restartButton.IsEnabled = false;
+            ShowBackendStatus(BackendStatus.Changing, "启动中");
             backendRunner.Start(config);
-            ShowStatus(true);
+            Timer t = new System.Timers.Timer(500);
+            t.Elapsed += (Object source, ElapsedEventArgs e) =>
+            {
+                t.Stop();
+                this.Dispatcher.Invoke(() =>
+                {
+                    if (backendRunner.Stoped())
+                    {
+                        ShowBackendStatus(BackendStatus.Stoped, "已停止");
+                        MessageBox.Show("启动服务失败，请修改端口重试，或检查日志。", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    else
+                    {
+                        ShowBackendStatus(BackendStatus.Running, "运行中");
+                    }
+                    restartButton.IsEnabled = true;
+                });
+                t.Dispose();
+            };
+            t.Start();
         }
 
         private void StopBackend()
         {
             backendRunner.Stop();
-            ShowStatus(false);
+            ShowBackendStatus(BackendStatus.Stoped,"已停止");
         }
 
-        private void ShowStatus(bool isRunning)
+        private void ShowBackendStatus(BackendStatus status, string message)
         {
-            if (isRunning)
+            switch (status)
             {
-
-                statusIcon.Source = successIcon;
-                statusText.Text = "运行中";
+                case BackendStatus.Stoped:
+                    statusIcon.Source = errorIcon;
+                    break;
+                case BackendStatus.Running:
+                    statusIcon.Source = successIcon;
+                    break;
+                case BackendStatus.Changing:
+                    statusIcon.Source = changeIcon;
+                    break;
             }
-            else
-            {
-                statusIcon.Source = errorIcon;
-                statusText.Text = "已停止";
-            }
+            statusText.Text = message;
         }
     }
 }
